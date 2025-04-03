@@ -41,6 +41,12 @@ interface RoomConfiguration {
   devices: DeviceItem[];
 }
 
+interface SetupItem {
+  name: string;
+  description?: string;
+  price: number;
+}
+
 interface SummaryViewProps {
   basicInfo?: {
     name?: string;
@@ -63,6 +69,27 @@ const SummaryView: React.FC<SummaryViewProps> = ({
   onSubmit = () => {},
   onSave = () => {},
 }) => {
+  // Essential setup items
+  const essentialSetupItems: SetupItem[] = [
+    {
+      name: "Raspberry Pi 5",
+      description: "Raspberry pi 5",
+      price: 15010
+    },
+    {
+      name: "Raspberry Pi Case",
+      description: "Raspberry pi case",
+      price: 2001
+    },
+    {
+      name: "SONOFF Zigbee Dongle",
+      description: "SONOFF Zigbee Coordinator Dongle",
+      price: 3005
+    }
+  ];
+  
+  // Calculate essential setup total
+  const essentialSetupTotal = essentialSetupItems.reduce((sum, item) => sum + item.price, 0);
   // Add form state for personal details
   const [personalDetails, setPersonalDetails] = React.useState({
     name: basicInfo.name || "",
@@ -163,7 +190,8 @@ const SummaryView: React.FC<SummaryViewProps> = ({
     subtotal: calculateRoomSubtotal(room),
   }));
 
-  const totalCost = roomSubtotals.reduce((sum, room) => sum + room.subtotal, 0);
+  const roomsTotal = roomSubtotals.reduce((sum, room) => sum + room.subtotal, 0);
+  const totalCost = roomsTotal + essentialSetupTotal;
 
   // Format currency in INR
   const formatCurrency = (amount: number) => {
@@ -206,6 +234,66 @@ const SummaryView: React.FC<SummaryViewProps> = ({
                 <p className="font-medium">{basicInfo.numberOfRooms}</p>
               </div>
             </div>
+          </div>
+
+          {/* Essential Setup Items */}
+          <div className="space-y-4">
+            <h3 className="text-xl font-semibold">Basic Setup Items</h3>
+            <Card className="overflow-hidden">
+              <CardHeader className="bg-muted/30 py-4">
+                <div className="flex justify-between items-center">
+                  <div>
+                    <CardTitle className="text-lg">Essential Hardware</CardTitle>
+                    <CardDescription>Required for system operation</CardDescription>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-sm text-muted-foreground">Subtotal</p>
+                    <p className="font-semibold text-lg">
+                      {formatCurrency(essentialSetupTotal)}
+                    </p>
+                  </div>
+                </div>
+              </CardHeader>
+
+              <CardContent className="p-0">
+                <div className="p-4">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Item</TableHead>
+                        <TableHead className="text-right">Price</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {essentialSetupItems.map((item, i) => (
+                        <TableRow key={i}>
+                          <TableCell>
+                            <div>
+                              <p className="font-medium">{item.name}</p>
+                              {item.description && (
+                                <p className="text-sm text-muted-foreground">
+                                  {item.description}
+                                </p>
+                              )}
+                            </div>
+                          </TableCell>
+                          <TableCell className="text-right">
+                            {formatCurrency(item.price)}
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+                <Separator />
+                <div className="p-4 bg-muted/10">
+                  <div className="flex justify-between items-center">
+                    <p className="font-medium">Basic Setup Total Cost</p>
+                    <p className="font-semibold">{formatCurrency(essentialSetupTotal)}</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
           </div>
 
           {/* Personal Details Form */}
@@ -344,6 +432,14 @@ const SummaryView: React.FC<SummaryViewProps> = ({
           <Card className="bg-primary/5 border-primary/20">
             <CardContent className="p-6">
               <div className="flex flex-col space-y-2">
+                <div className="flex justify-between">
+                  <h3 className="text-lg font-medium">Room Configurations Subtotal</h3>
+                  <p className="font-medium">{formatCurrency(roomsTotal)}</p>
+                </div>
+                <div className="flex justify-between">
+                  <h3 className="text-lg font-medium">Basic Setup Items</h3>
+                  <p className="font-medium">{formatCurrency(essentialSetupTotal)}</p>
+                </div>
                 <div className="flex justify-between">
                   <h3 className="text-lg font-medium">Subtotal</h3>
                   <p className="font-medium">{formatCurrency(totalCost)}</p>
