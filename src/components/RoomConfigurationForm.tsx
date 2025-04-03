@@ -276,7 +276,7 @@ const RoomConfigurationForm: React.FC<RoomConfigurationFormProps> = ({
           <CardHeader className="bg-muted/30">
             <div className="flex justify-between items-center">
               <CardTitle className="text-xl">
-                Room {index + 1}: {room.name || "Unnamed Room"}
+                {room.name || "Unnamed Room"}: {roomTypes.find(t => t.value === room.type)?.label || room.type}
               </CardTitle>
               <Badge variant="outline" className="px-3 py-1">
                 {formatPrice(calculateRoomPrice(room))}
