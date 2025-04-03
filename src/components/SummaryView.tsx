@@ -44,13 +44,14 @@ interface RoomConfiguration {
 interface SummaryViewProps {
   basicInfo?: {
     name?: string;
-    contactDetails?: string;
+    email?: string;
+    phone?: string;
     propertyType?: string;
     numberOfRooms?: number;
   };
   roomConfigurations?: RoomConfiguration[];
   onBack?: () => void;
-  onSubmit?: () => void;
+  onSubmit?: (updatedBasicInfo: { name: string; email: string; phone: string }) => void;
   onSave?: () => void;
   onRoomsChange?: (rooms: RoomConfiguration[]) => void;
 }
@@ -62,17 +63,58 @@ const SummaryView: React.FC<SummaryViewProps> = ({
   onSubmit = () => {},
   onSave = () => {},
 }) => {
+  // Add form state for personal details
+  const [personalDetails, setPersonalDetails] = React.useState({
+    name: basicInfo.name || "",
+    email: basicInfo.email || "",
+    phone: basicInfo.phone || ""
+  });
+
   // Add error state
   const [hasError, setHasError] = React.useState(false);
+  const [formErrors, setFormErrors] = React.useState({
+    name: false,
+    email: false,
+    phone: false
+  });
 
   React.useEffect(() => {
     // Validate required data
-    if (!basicInfo.name || roomConfigurations.length === 0) {
+    if (roomConfigurations.length === 0) {
       setHasError(true);
     } else {
       setHasError(false);
     }
-  }, [basicInfo, roomConfigurations]);
+  }, [roomConfigurations]);
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setPersonalDetails(prev => ({
+      ...prev,
+      [name]: value
+    }));
+    // Clear error for this field
+    setFormErrors(prev => ({
+      ...prev,
+      [name]: false
+    }));
+  };
+
+  const validateForm = () => {
+    const errors = {
+      name: !personalDetails.name.trim(),
+      email: !personalDetails.email.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(personalDetails.email),
+      phone: !personalDetails.phone.trim() || !/^[0-9]{10}$/.test(personalDetails.phone)
+    };
+    setFormErrors(errors);
+    return !Object.values(errors).some(error => error);
+  };
+
+  const handleSubmit = () => {
+    if (validateForm()) {
+      onSubmit(personalDetails);
+    }
+  };
 
   if (hasError) {
     return (
@@ -156,20 +198,55 @@ const SummaryView: React.FC<SummaryViewProps> = ({
             <h3 className="text-xl font-semibold">Basic Information</h3>
             <div className="grid grid-cols-2 gap-4 p-4 bg-muted/30 rounded-lg">
               <div>
-                <p className="text-sm text-muted-foreground">Name</p>
-                <p className="font-medium">{basicInfo.name}</p>
-              </div>
-              <div>
-                <p className="text-sm text-muted-foreground">Contact Details</p>
-                <p className="font-medium">{basicInfo.contactDetails}</p>
-              </div>
-              <div>
                 <p className="text-sm text-muted-foreground">Property Type</p>
                 <p className="font-medium">{basicInfo.propertyType}</p>
               </div>
               <div>
                 <p className="text-sm text-muted-foreground">Number of Rooms</p>
                 <p className="font-medium">{basicInfo.numberOfRooms}</p>
+              </div>
+            </div>
+          </div>
+
+          {/* Personal Details Form */}
+          <div className="space-y-4">
+            <h3 className="text-xl font-semibold">Personal Details</h3>
+            <div className="grid gap-4 p-4 bg-muted/30 rounded-lg">
+              <div>
+                <label className="text-sm text-muted-foreground">Full Name</label>
+                <input
+                  type="text"
+                  name="name"
+                  value={personalDetails.name}
+                  onChange={handleInputChange}
+                  className={`w-full mt-1 px-3 py-2 border rounded-md ${formErrors.name ? 'border-red-500' : 'border-gray-300'}`}
+                  placeholder="Enter your full name"
+                />
+                {formErrors.name && <p className="text-sm text-red-500 mt-1">Please enter your name</p>}
+              </div>
+              <div>
+                <label className="text-sm text-muted-foreground">Email Address</label>
+                <input
+                  type="email"
+                  name="email"
+                  value={personalDetails.email}
+                  onChange={handleInputChange}
+                  className={`w-full mt-1 px-3 py-2 border rounded-md ${formErrors.email ? 'border-red-500' : 'border-gray-300'}`}
+                  placeholder="Enter your email address"
+                />
+                {formErrors.email && <p className="text-sm text-red-500 mt-1">Please enter a valid email address</p>}
+              </div>
+              <div>
+                <label className="text-sm text-muted-foreground">Phone Number</label>
+                <input
+                  type="tel"
+                  name="phone"
+                  value={personalDetails.phone}
+                  onChange={handleInputChange}
+                  className={`w-full mt-1 px-3 py-2 border rounded-md ${formErrors.phone ? 'border-red-500' : 'border-gray-300'}`}
+                  placeholder="Enter your 10-digit phone number"
+                />
+                {formErrors.phone && <p className="text-sm text-red-500 mt-1">Please enter a valid 10-digit phone number</p>}
               </div>
             </div>
           </div>
@@ -298,6 +375,10 @@ const SummaryView: React.FC<SummaryViewProps> = ({
             <Button variant="outline" onClick={onSave} className="gap-2">
               <Download size={16} />
               Save Configuration
+            </Button>
+            <Button onClick={handleSubmit} className="gap-2">
+              <Send size={16} />
+              Submit Order
             </Button>
           </div>
         </CardFooter>

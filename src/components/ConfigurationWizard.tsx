@@ -18,7 +18,6 @@ import {
   CardHeader,
   CardTitle,
 } from "./ui/card";
-import { Input } from "./ui/input";
 import { Label } from "./ui/label";
 import { RadioGroup, RadioGroupItem } from "./ui/radio-group";
 import {
@@ -33,11 +32,11 @@ import SummaryView from "./SummaryView";
 
 // Define types for our configuration data
 interface BasicInfo {
-  name: string;
-  email: string;
-  phone: string;
   propertyType: "existing" | "new";
   roomCount: number;
+  name?: string;
+  email?: string;
+  phone?: string;
 }
 
 export interface SensorOption {
@@ -79,9 +78,6 @@ const ConfigurationWizard: React.FC = () => {
   // State for storing the configuration data
   const [configData, setConfigData] = useState<ConfigurationData>({
     basicInfo: {
-      name: "",
-      email: "",
-      phone: "",
       propertyType: "existing",
       roomCount: 1,
     },
@@ -167,7 +163,7 @@ const ConfigurationWizard: React.FC = () => {
       const newRooms = Array.from(
         { length: roomCount - currentRoomCount },
         (_, index) => ({
-          id: `room-${currentRoomCount + index}`,
+          id: `room-${currentRoomCount + index}-${Date.now()}`,
           name: `Room ${currentRoomCount + index + 1}`,
           type: "bedroom",
           sensors: JSON.parse(JSON.stringify(defaultSensors)),
@@ -254,8 +250,8 @@ const ConfigurationWizard: React.FC = () => {
     if (currentStep === 1) {
       return configData.rooms.every(room => 
         room.name.trim() !== "" && 
-        room.sensors.some(sensor => sensor.selected) || 
-        room.devices.some(device => device.quantity > 0)
+        (room.sensors.some(sensor => sensor.selected) || 
+        room.devices.some(device => device.quantity > 0))
       );
     }
     return true;
@@ -278,17 +274,41 @@ const ConfigurationWizard: React.FC = () => {
     }
   };
 
-  // Handle form submission
-  const handleSubmit = () => {
+  // Handle form submission with personal details
+  const handleSubmit = (personalDetails: { name: string; email: string; phone: string }) => {
+    const finalConfig = {
+      ...configData,
+      basicInfo: {
+        ...configData.basicInfo,
+        ...personalDetails
+      }
+    };
     // Here you would typically send the data to your backend
-    console.log("Configuration submitted:", configData);
+    console.log("Configuration submitted:", finalConfig);
     alert("Your configuration has been submitted successfully!");
+    // Reset the form after successful submission
+    setCurrentStep(0);
+    setConfigData({
+      basicInfo: {
+        propertyType: "existing",
+        roomCount: 1,
+      },
+      rooms: [],
+    });
+    // Reset the form after successful submission
+    setCurrentStep(0);
+    setConfigData({
+      basicInfo: {
+        propertyType: "existing",
+        roomCount: 1,
+      },
+      rooms: [],
+    });
   };
 
   // Check if basic info form is valid
   const isBasicInfoValid = () => {
-    const { name, email, phone } = configData.basicInfo;
-    return name.trim() !== "" && email.trim() !== "" && phone.trim() !== "";
+    return true; // No validation needed for initial step anymore
   };
 
   // Render the current step content
@@ -298,40 +318,6 @@ const ConfigurationWizard: React.FC = () => {
         return (
           <div className="space-y-6 bg-white p-6 rounded-lg">
             <div className="space-y-4">
-              <div>
-                <Label htmlFor="name">Full Name</Label>
-                <Input
-                  id="name"
-                  name="name"
-                  value={configData.basicInfo.name}
-                  onChange={handleBasicInfoChange}
-                  placeholder="Enter your full name"
-                />
-              </div>
-
-              <div>
-                <Label htmlFor="email">Email Address</Label>
-                <Input
-                  id="email"
-                  name="email"
-                  type="email"
-                  value={configData.basicInfo.email}
-                  onChange={handleBasicInfoChange}
-                  placeholder="Enter your email address"
-                />
-              </div>
-
-              <div>
-                <Label htmlFor="phone">Phone Number</Label>
-                <Input
-                  id="phone"
-                  name="phone"
-                  value={configData.basicInfo.phone}
-                  onChange={handleBasicInfoChange}
-                  placeholder="Enter your phone number"
-                />
-              </div>
-
               <div>
                 <Label>Property Type</Label>
                 <RadioGroup
@@ -394,7 +380,8 @@ const ConfigurationWizard: React.FC = () => {
           <SummaryView
             basicInfo={{
               name: configData.basicInfo.name,
-              contactDetails: `${configData.basicInfo.email} | ${configData.basicInfo.phone}`,
+              email: configData.basicInfo.email,
+              phone: configData.basicInfo.phone,
               propertyType:
                 configData.basicInfo.propertyType === "existing"
                   ? "Existing Home"
@@ -493,14 +480,7 @@ const ConfigurationWizard: React.FC = () => {
             >
               Next <ChevronRight className="h-4 w-4" />
             </Button>
-          ) : (
-            <Button
-              onClick={handleSubmit}
-              className="bg-green-600 hover:bg-green-700 text-white flex items-center gap-2"
-            >
-              Submit Order <Send className="h-4 w-4 ml-2" />
-            </Button>
-          )}
+          ) : null}
         </CardFooter>
       </Card>
 
