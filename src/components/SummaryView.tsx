@@ -462,21 +462,15 @@ const SummaryView: React.FC<SummaryViewProps> = ({
           </Card>
         </CardContent>
 
-        <CardFooter className="flex justify-between pt-6">
-          <Button variant="outline" onClick={onBack} className="gap-2">
+        <CardFooter className="flex justify-end pt-6">
+          {/* <Button variant="outline" onClick={onBack} className="gap-2">
             <ArrowLeft size={16} />
             Back to Room Details
+          </Button> */}
+          <Button variant="outline" onClick={onSave} className="gap-2">
+            <Download size={16} />
+            Save Configuration
           </Button>
-          <div className="flex gap-3">
-            <Button variant="outline" onClick={onSave} className="gap-2">
-              <Download size={16} />
-              Save Configuration
-            </Button>
-            <Button onClick={handleSubmit} className="gap-2">
-              <Send size={16} />
-              Submit Order
-            </Button>
-          </div>
         </CardFooter>
       </Card>
     </motion.div>
