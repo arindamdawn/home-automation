@@ -56,94 +56,51 @@ interface SummaryViewProps {
 }
 
 const SummaryView: React.FC<SummaryViewProps> = ({
-  basicInfo = {
-    name: "John Doe",
-    contactDetails: "john.doe@example.com | +91 9876543210",
-    propertyType: "Existing Home",
-    numberOfRooms: 3,
-  },
-  roomConfigurations = [
-    {
-      id: "1",
-      name: "Living Room",
-      type: "Living Area",
-      sensors: [
-        {
-          name: "Motion Sensor",
-          price: 1200,
-          selected: true,
-          description: "The PIR Motion Sensor Detector Module",
-        },
-        {
-          name: "Human Presence Detection",
-          price: 2500,
-          selected: true,
-          description: "Detects if the room is occupied",
-        },
-        {
-          name: "Light Intensity",
-          price: 800,
-          selected: false,
-          description: "Detects if the room is dark or bright",
-        },
-      ],
-      devices: [
-        { name: "12W LED COB Dimmer", price: 1500, quantity: 2 },
-        { name: "4 Switch Module", price: 2200, quantity: 1 },
-      ],
-    },
-    {
-      id: "2",
-      name: "Master Bedroom",
-      type: "Bedroom",
-      sensors: [
-        {
-          name: "Motion Sensor",
-          price: 1200,
-          selected: true,
-          description: "The PIR Motion Sensor Detector Module",
-        },
-        {
-          name: "Air Quality Index",
-          price: 3500,
-          selected: true,
-          description: "Air Quality Index for home",
-        },
-      ],
-      devices: [
-        { name: "12W LED COB Dimmer", price: 1500, quantity: 1 },
-        { name: "4 Switch Module", price: 2200, quantity: 1 },
-      ],
-    },
-    {
-      id: "3",
-      name: "Kitchen",
-      type: "Kitchen",
-      sensors: [
-        {
-          name: "Temperature & Humidity",
-          price: 1800,
-          selected: true,
-          description: "Detects Air Pressure, Temperature, and Humidity",
-        },
-        {
-          name: "Air Quality Index",
-          price: 3500,
-          selected: true,
-          description: "Air Quality Index for home",
-        },
-      ],
-      devices: [
-        { name: "12W LED COB Dimmer", price: 1500, quantity: 1 },
-        { name: "4 Switch Module", price: 2200, quantity: 2 },
-      ],
-    },
-  ],
-  onBack = () => console.log("Back clicked"),
-  onSubmit = () => console.log("Submit clicked"),
-  onSave = () => console.log("Save clicked"),
-  onRoomsChange = () => {}, // Add default empty function for onRoomsChange
+  basicInfo = {},
+  roomConfigurations = [],
+  onBack = () => {},
+  onSubmit = () => {},
+  onSave = () => {},
 }) => {
+  // Add error state
+  const [hasError, setHasError] = React.useState(false);
+
+  React.useEffect(() => {
+    // Validate required data
+    if (!basicInfo.name || roomConfigurations.length === 0) {
+      setHasError(true);
+    } else {
+      setHasError(false);
+    }
+  }, [basicInfo, roomConfigurations]);
+
+  if (hasError) {
+    return (
+      <motion.div
+        className="w-full max-w-5xl mx-auto bg-background p-6 rounded-xl"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+      >
+        <Card className="border-none shadow-none">
+          <CardHeader>
+            <CardTitle className="text-3xl font-bold text-destructive">
+              Configuration Error
+            </CardTitle>
+            <CardDescription className="text-lg">
+              Unable to display summary due to missing configuration data.
+            </CardDescription>
+          </CardHeader>
+          <CardFooter className="flex justify-start pt-6">
+            <Button variant="outline" onClick={onBack} className="gap-2">
+              <ArrowLeft size={16} />
+              Back to Configuration
+            </Button>
+          </CardFooter>
+        </Card>
+      </motion.div>
+    );
+  }
+
   // Calculate subtotals and total
   const calculateRoomSubtotal = (room: RoomConfiguration) => {
     const sensorTotal = room.sensors

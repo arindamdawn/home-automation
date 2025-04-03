@@ -7,6 +7,7 @@ import {
   Home,
   Settings,
   FileText,
+  Send,
 } from "lucide-react";
 import { Button } from "./ui/button";
 import {
@@ -249,8 +250,23 @@ const ConfigurationWizard: React.FC = () => {
   };
 
   // Navigate to next step
+  const isRoomConfigValid = () => {
+    if (currentStep === 1) {
+      return configData.rooms.every(room => 
+        room.name.trim() !== "" && 
+        room.sensors.some(sensor => sensor.selected) || 
+        room.devices.some(device => device.quantity > 0)
+      );
+    }
+    return true;
+  };
+
   const handleNext = () => {
     if (currentStep < steps.length - 1) {
+      if (!isRoomConfigValid()) {
+        alert("Please configure at least one sensor or device for each room");
+        return;
+      }
       setCurrentStep(currentStep + 1);
     }
   };
